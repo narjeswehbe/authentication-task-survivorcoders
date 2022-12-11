@@ -5,6 +5,7 @@ import (
 	"auth_microservice/services"
 	"github.com/labstack/echo/v4"
 	"net/http"
+	"strings"
 )
 
 func SignUp(c echo.Context) error {
@@ -38,12 +39,16 @@ func Login(c echo.Context) error {
 }
 
 func Logout(c echo.Context) error {
-	var i uint
-	err := c.Bind(&i)
-	services.Logout(i)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, "errror in binding")
+	headers := c.Request().Header
+	auth := headers.Values("Authorization")
+	if auth == nil {
+		return c.NoContent(http.StatusUnauthorized)
 	}
-	return c.JSON(http.StatusBadRequest, "logod out")
+	tokenString := strings.Fields(c.Request().Header.Get(echo.HeaderAuthorization))[1]
+	ok := services.Logout(tokenString)
+	if ok == false {
+		return c.JSON(http.StatusBadRequest, "failed to log out")
+	}
+	return c.JSON(http.StatusOK, "logged out")
 
 }
