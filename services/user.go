@@ -3,11 +3,12 @@ package services
 import (
 	"auth_microservice/config"
 	"auth_microservice/entity"
+	"auth_microservice/myMiddleware"
 	"auth_microservice/requests"
 	"errors"
 	"fmt"
-	"github.com/dmitrymomot/go-jwt/blacklist"
 	"github.com/golang-jwt/jwt"
+	"github.com/twinj/uuid"
 	"gorm.io/gorm"
 	"os"
 	"strconv"
@@ -83,8 +84,9 @@ func Login(request requests.LoginRequest) string {
 	}
 	//generate token :
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"sub": user.ID,
-		"exp": time.Now().Add(time.Minute * 2).Unix(),
+		"user_id":   user.ID,
+		"auth_uuid": uuid.NewV4().String(),
+		"exp":       time.Now().Add(time.Minute * 60).Unix(),
 	})
 	fmt.Println(token)
 
@@ -92,22 +94,26 @@ func Login(request requests.LoginRequest) string {
 	if err != nil {
 		return "failed to create token"
 	}
-	req := requests.TokenSaveRequest{Token: tokenString, UserId: user.ID, Expires_at: time.Now().Add(time.Minute * 2).Unix()}
-	SaveToken(req)
 	return tokenString
 }
 
-func Logout(id uint) {
-	var token entity.Token
-	error2 := config.Db.Where("user_id = ?", id).First(&token)
-	if error2 != nil {
-		fmt.Println("error in db")
-		return
-	}
-	var list blacklist.Blacklist
-	err := list.Add(token.Token)
-	if err != nil {
-		return
-	}
+func Logout(token string) bool {
+	//get the token from header , it is passed in the param
+	fmt.Println("inside services")
+	//get the claims
+	claims, ok := myMiddleware.ExtractClaims(token)
+	var authToken entity.BlackList
+	auth_uuid := fmt.Sprint(claims["auth_uuid"])
+	user_id := fmt.Sprint(claims["user_id"])
+	final, _ := strconv.ParseInt(user_id, 10, 64)
+	authToken.AuthUUID = auth_uuid
+	authToken.UserID = uint64(final)
+	authToken.ExpiryDate = time.Unix(int64(claims["exp"].(float64)), 0)
+
+	//save token to black list !!!
+
+	config.Db.Save(&authToken)
+	return ok
+	//save to blacklist
 
 }

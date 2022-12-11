@@ -4,6 +4,7 @@ import (
 	"auth_microservice/config"
 	"auth_microservice/controllers"
 	"auth_microservice/myMiddleware"
+	"auth_microservice/services"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"net/http"
@@ -13,6 +14,7 @@ func main() {
 	config.LoadEnv()
 	config.SmtpConfig()
 	config.DbConfig()
+	services.CleanBlackList()
 	e := echo.New()
 
 	// Middleware

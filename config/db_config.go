@@ -19,7 +19,7 @@ func DbConfig() {
 		fmt.Println("Couldn't connect !!!!")
 	}
 	err = Db.AutoMigrate(&entity.User{})
-	err = Db.AutoMigrate(&entity.Token{})
+	err = Db.AutoMigrate(&entity.BlackList{})
 
 	if err != nil {
 		fmt.Println("Couldn't Migrate !!!!")
