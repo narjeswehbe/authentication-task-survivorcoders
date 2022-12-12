@@ -1,7 +1,7 @@
 package requests
 
 type VerifyEmailRequest struct {
-	Email             string
-	Verification_code string
-	Password          string
+	Email             string `json:"email"`
+	Verification_code string `json:"code"`
+	Password          string `json:"password"`
 }
