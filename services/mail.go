@@ -4,13 +4,12 @@ import (
 	"auth_microservice/config"
 	"fmt"
 	mail "github.com/xhit/go-simple-mail/v2"
-	"log"
 	"math/rand"
 	"os"
 	"time"
 )
 
-func Send(code int, username string) {
+func Send(code int, username string) bool {
 	address := mail.NewMSG()
 	address.SetFrom("Survivor Coders <narjeswehbi04@gmail.com>")
 	address.AddTo(username)
@@ -18,6 +17,7 @@ func Send(code int, username string) {
 	b, e := os.ReadFile("msg.html")
 	if e != nil {
 		fmt.Println("failed to load html file !! ")
+		return false
 	}
 
 	address.SetBody(mail.TextHTML, fmt.Sprintf(string(b), code))
@@ -25,9 +25,9 @@ func Send(code int, username string) {
 	err := address.Send(config.SmtpClient)
 	if err != nil {
 		fmt.Println("error mail.go")
-		log.Fatal(err)
+		return false
 	}
-
+	return true
 }
 
 func GenerateCode() int {
